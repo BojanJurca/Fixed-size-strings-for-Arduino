@@ -72,9 +72,9 @@ while ( s1 [k] ) {
 
 Opposite to Arduino Strings, fsString constructors can not fail as long as there is enough stack memory where they reside (with an exception when the initialization string is longer than fits into fsString).
 
-If due to string assignment or concatenation the result should be longer than fits into fsString, fsString will get filled to the maximum number of characters it can contain and the OVERFLOW error flag will get set. This flag can be checked so the code can react to it if needed.
+If due to string assignment or concatenation the result should be longer than fits into fsString, fsString will get filled to the maximum number of characters it can contain and the OVERFLOW error flag will be set. This flag can be checked so the code can react to it if needed.
 
-If due to string assignment or concatenation the result should be longer than fits into fsString, fsString will get filled to the maximum number of characters it can contain and the OVERFLOW error flag will get set. This flag can be checked so the code can react to it if needed.
+If due to string assignment or concatenation the result should be longer than fits into fsString, fsString will get filled to the maximum number of characters it can contain and the OVERFLOW error flag will be set. This flag can be checked so the code can react to it if needed.
 
 if substr or substring member functions are called with a position parameter outside of string range OUT_OF_RANGE error flag will be set. This flag can be checked so the code can react to it if needed.
 
