@@ -11,6 +11,8 @@
 #ifndef __FS_STRING_H__
     #define __FS_STRING_H__
 
+    // #define __FSSTRING_H_DEBUG__       // uncomment this line for debugging puroposes
+
 
     // fixed size string, actually C char arrays with additional functions and operators
     template<size_t N> struct fsString {
@@ -33,132 +35,210 @@
             fsString () {}                                      // for declarations like fsString<15> a;
             
             fsString (const char *other) {                      // for declarations with initialization, like fsString<15> b = "abc";
-                strncpy (this->__c_str__, other, N + 1);
-                if (this->__c_str__ [N]) __error__ = OVERFLOW;        // error? overflow?
-                this->__c_str__ [N] = 0;                              // mark the end of the string regardles the possible owerflow
+                #ifdef __FSSTRING_H_DEBUG__
+                    if (other) Serial.printf ("fsString<%i> const char * constructor, other = ''%s''\n", N, other); else Serial.printf ("fsString<%i> const char * constructor, other = NULL\n", N);
+                #endif
+                if (other) {                                                  // check if NULL char * pointer to overcome from possible programmer's errors
+                    strncpy (this->__c_str__, other, N + 1);
+                    if (this->__c_str__ [N]) __error__ = OVERFLOW;            // error? overflow?
+                    this->__c_str__ [N] = 0;                                  // mark the end of the string regardles the possible owerflow
+                } 
             }
-            
-            fsString (const fsString& other) {                  // for declarations with initialization, like fsString<15> b = a;
+
+            fsString (const fsString& other) {                  // for declarations with initialization, like fsString<15> b = a;            
+                #ifdef __FSSTRING_H_DEBUG__
+                    Serial.printf ("fsString<%i> const fsString& constructor, other = ''%s''\n", N, &other);
+                #endif
                 strncpy (this->__c_str__, other.__c_str__, N + 1);
-                this->__error__ = other.__error__;                    // inherit all errors from original string
+                this->__error__ = other.__error__;                            // inherit all errors from original string
             }
         
             fsString (const char& other) {                      // for declarations with initialization, like fsString<15> c = 'c';
-                if (0 < N) this->__c_str__ [0] = other;
-                else this->__error__ = OVERFLOW;                      // error? overflow?
+                #ifdef __FSSTRING_H_DEBUG__
+                    Serial.printf ("fsString<%i> const char& constructor, other = '%c'\n", N, other);
+                #endif
+                this->__c_str__ [0] = other;
+                this->__c_str__ [1] = 0;
+            }
+
+            fsString (int16_t number) {                         // convert int to fsString
+                #ifdef __FSSTRING_H_DEBUG__
+                    Serial.printf ("fsString<%i> int16_t constructor, other = %i\n", N, (int) number);
+                #endif
+                char buffer [12];
+                sprintf (buffer, "%i", (int) number);
+                strncpy (this->__c_str__, buffer, N + 1);
+                if (this->__c_str__ [N]) __error__ = OVERFLOW;                // error? overflow?
+                this->__c_str__ [N] = 0;                                      // mark the end of the string regardles the possible owerflow
+            }
+
+            fsString (uint16_t number) {                        // convert unsigned int to fsString
+                #ifdef __FSSTRING_H_DEBUG__
+                    Serial.printf ("fsString<%i> uint16_t constructor, other = %i\n", N, (int) number);
+                #endif
+                char buffer [12];
+                sprintf (buffer, "%u", (unsigned int) number);
+                strncpy (this->__c_str__, buffer, N + 1);
+                if (this->__c_str__ [N]) __error__ = OVERFLOW;                // error? overflow?
+                this->__c_str__ [N] = 0;                                      // mark the end of the string regardles the possible owerflow
             }
 
             fsString (int number) {                             // convert int to fsString
+                #ifdef __FSSTRING_H_DEBUG__
+                    Serial.printf ("fsString<%i> int constructor, other = %i\n", N, number);
+                #endif
                 char buffer [12];
                 sprintf (buffer, "%i", number);
                 strncpy (this->__c_str__, buffer, N + 1);
-                if (this->__c_str__ [N]) __error__ = OVERFLOW;        // error? overflow?
-                this->__c_str__ [N] = 0;                              // mark the end of the string regardles the possible owerflow
+                if (this->__c_str__ [N]) __error__ = OVERFLOW;                // error? overflow?
+                this->__c_str__ [N] = 0;                                      // mark the end of the string regardles the possible owerflow
             }
 
+
             fsString (unsigned int number) {                    // convert unsigned int to fsString
+                #ifdef __FSSTRING_H_DEBUG__
+                    Serial.printf ("fsString<%i> unsigned int constructor, other = %u\n", N, number);
+                #endif
                 char buffer [12];
                 sprintf (buffer, "%u", number);
                 strncpy (this->__c_str__, buffer, N + 1);
-                if (this->__c_str__ [N]) __error__ = OVERFLOW;        // error? overflow?
-                this->__c_str__ [N] = 0;                              // mark the end of the string regardles the possible owerflow
+                if (this->__c_str__ [N]) __error__ = OVERFLOW;                // error? overflow?
+                this->__c_str__ [N] = 0;                                      // mark the end of the string regardles the possible owerflow
             }
 
             fsString (long number) {                             // convert long to fsString
+                #ifdef __FSSTRING_H_DEBUG__
+                    Serial.printf ("fsString<%i> long constructor, other = %l\n", N, number);
+                #endif
                 char buffer [22];
                 sprintf (buffer, "%l", number);
                 strncpy (this->__c_str__, buffer, N + 1);
-                if (this->__c_str__ [N]) __error__ = OVERFLOW;        // error? overflow?
-                this->__c_str__ [N] = 0;                              // mark the end of the string regardles the possible owerflow
+                if (this->__c_str__ [N]) __error__ = OVERFLOW;                // error? overflow?
+                this->__c_str__ [N] = 0;                                      // mark the end of the string regardles the possible owerflow
             }
             
             fsString (unsigned long number) {                    // convert unsigned int to fsString
+                #ifdef __FSSTRING_H_DEBUG__
+                    Serial.printf ("fsString<%i> unsigned long constructor, other = %lu\n", N, number);
+                #endif
                 char buffer [22];
                 sprintf (buffer, "%lu", number);
                 strncpy (this->__c_str__, buffer, N + 1);
-                if (this->__c_str__ [N]) __error__ = OVERFLOW;        // error? overflow?
-                this->__c_str__ [N] = 0;                              // mark the end of the string regardles the possible owerflow
+                if (this->__c_str__ [N]) __error__ = OVERFLOW;                // error? overflow?
+                this->__c_str__ [N] = 0;                                      // mark the end of the string regardles the possible owerflow
             }
-        
-        
+
+
             // char *() operator so that fsString can be used as C strings, like; fsString<5> a = "123"; sprintf ("%s\n", a);
-            operator char *() { return __c_str__; }
+            inline operator char *() __attribute__((always_inline)) { return __c_str__; }
             
           
             // = operator
             fsString operator = (const char *other) {           // for assigning C string to fsString, like: a = "abc";
-                strncpy (this->__c_str__, other, N + 1);
-                this->__error__ = this->__c_str__ [N] ? OVERFLOW : 0;     // error? overflow?
-                this->__c_str__ [N] = 0;                              // mark the end of the string regardles the possible owerflow
+                #ifdef __FSSTRING_H_DEBUG__
+                    if (other) Serial.printf ("fsString<%i> = const char * operator, other = ''%s''\n", N, other); else Serial.printf ("fsString<%i> = const char * operator, other = NULL\n", N);
+                #endif
+                if (other) {                                                      // check if NULL char * pointer to overcome from possible programmer's errors
+                    strncpy (this->__c_str__, other, N + 1);
+                    this->__error__ = this->__c_str__ [N] ? OVERFLOW : 0;         // error? overflow?
+                    this->__c_str__ [N] = 0;                                      // mark the end of the string regardles the possible owerflow
+                }
                 return *this;
             }
             
             fsString operator = (const fsString& other) {       // for assigning other fsString to fsString, like: a = b;
+                #ifdef __FSSTRING_H_DEBUG__
+                    Serial.printf ("fsString<%i> = const fsString& operator, other = ''%s''\n", N, &other);
+                #endif
                 strncpy (this->__c_str__, other.__c_str__, N + 1);
-                this->__error__ = other.__error__;                          // inherit all errors from original string
+                this->__error__ = other.__error__;                              // inherit all errors from original string
                 return *this;
             }
         
             fsString operator = (const char& other) {           // for assigning character to fsString, like: a = 'b';
-                if (0 < N) { this->__c_str__ [0] = other; this->__c_str__ [1] = 0; } 
-                else __error__ = OVERFLOW;                              // error? overflow?
+                #ifdef __FSSTRING_H_DEBUG__
+                    Serial.printf ("fsString<%i> = const char& operator, other = '%c'\n", N, other);
+                #endif
+                this->__c_str__ [0] = other; 
+                this->__c_str__ [1] = 0;
                 return *this;
             }   
         
         
             // [] operator
-            char &operator [] (size_t i) { return __c_str__ [i]; }    
+            inline char &operator [] (size_t i) __attribute__((always_inline)) { return __c_str__ [i]; }    
         
         
             // += operator
             fsString operator += (const char *other) {          // for adding C string to fsString, like: a += "abc";
-                strncat (this->__c_str__, other, N + 1 - strlen (this->__c_str__));
-                this->__error__ |= this->__c_str__ [N] ? OVERFLOW : 0;    // error? overflow?
-                this->__c_str__ [N] = 0;                              // mark the end of the string regardles the possible owerflow
+                #ifdef __FSSTRING_H_DEBUG__
+                    if (other) Serial.printf ("fsString<%i> += const char * operator, other = ''%s''\n", N, other); else Serial.printf ("fsString<%i> += const char * operator, other = NULL\n", N);
+                #endif
+                if (other) {                                                      // check if NULL char * pointer to overcome from possible programmer's errors
+                    strncat (this->__c_str__, other, N + 1 - strlen (this->__c_str__));
+                    this->__error__ |= this->__c_str__ [N] ? OVERFLOW : 0;        // error? overflow?
+                    this->__c_str__ [N] = 0;                                      // mark the end of the string regardles the possible owerflow
+                }
                 return *this;
             }
-        
+
             fsString operator += (const fsString& other) {      // for concatenating one fsString with anoterh, like: a += b;
+                #ifdef __FSSTRING_H_DEBUG__
+                    Serial.printf ("fsString<%i> += const fsString& operator, other = ''%s''\n", N, &other);
+                #endif
                 strncat (this->__c_str__, other.__c_str__, N + 1 - strlen (this->__c_str__));
-                this->__error__ |= other.__error__;                         // add all errors from other string
-                this->__error__ |= this->__c_str__ [N] ? OVERFLOW : 0;    // error? overflow?
-                this->__c_str__ [N] = 0;                              // mark the end of the string regardles the possible owerflow
-                this->__error__ |= other.__error__;                         // add also other errors to this errors
+                this->__error__ |= other.__error__;                             // add all errors from other string
+                this->__error__ |= this->__c_str__ [N] ? OVERFLOW : 0;          // error? overflow?
+                this->__c_str__ [N] = 0;                                        // mark the end of the string regardles the possible owerflow
                 return *this;
             }
         
             fsString operator += (const char& other) {          // for adding a charactr to fsString, like: a += 'b';
+                #ifdef __FSSTRING_H_DEBUG__
+                    Serial.printf ("fsString<%i> += const char& operator, other = '%c'\n", N, other);
+                #endif
                 size_t l = strlen (this->__c_str__);
                 if (l < N) { this->__c_str__ [l] = other; this->__c_str__ [l + 1] = 0; } 
-                else __error__ |= OVERFLOW;                             // error? overflow?
+                else __error__ |= OVERFLOW;                                     // error? overflow?
                 return *this;
             }   
         
         
             // + operator
             fsString operator + (char *other) {                 // for adding C string to fsString, like: a + "abc";
-                strncat (this->__c_str__, other, N + 1 - strlen (this->__c_str__));
-                this->__error__ |= this->__c_str__ [N] ? OVERFLOW : 0;    // error? overflow?
-                this->__c_str__ [N] = 0;                              // mark the end of the string regardles the possible owerflow
+                #ifdef __FSSTRING_H_DEBUG__
+                    if (other) Serial.printf ("fsString<%i> + const char * operator, other = ''%s''\n", N, other); else Serial.printf ("fsString<%i> + const char * operator, other = NULL\n", N);
+                #endif
+                if (other) {                                                      // check if NULL char * pointer to overcome from possible programmer's errors
+                    strncat (this->__c_str__, other, N + 1 - strlen (this->__c_str__));
+                    this->__error__ |= this->__c_str__ [N] ? OVERFLOW : 0;        // error? overflow?
+                    this->__c_str__ [N] = 0;                                      // mark the end of the string regardles the possible owerflow
+                }
                 return *this;
             }
         
             fsString operator + (const fsString& other) {       // for concatenating one fsString with anoterh, like: a + b;
+                #ifdef __FSSTRING_H_DEBUG__
+                    Serial.printf ("fsString<%i> + const fsString& operator, other = ''%s''\n", N, &other);
+                #endif
                 strncat (this->__c_str__, other.__c_str__, N + 1 - strlen (this->__c_str__));
-                this->__error__ |= other.__error__;                         // add all errors from other string
-                this->__error__ |= this->__c_str__ [N] ? OVERFLOW : 0;    // error? overflow?
-                this->__c_str__ [N] = 0;                              // mark the end of the string regardles the possible owerflow
-                this->__error__ |= other.__error__;                         // add also other errors to this errors
+                this->__error__ |= other.__error__;                               // add all errors from other string
+                this->__error__ |= this->__c_str__ [N] ? OVERFLOW : 0;            // error? overflow?
+                this->__c_str__ [N] = 0;                                          // mark the end of the string regardles the possible owerflow
                 return *this;
             }
-            /* this doesn't work:
+
+            // doesn't work for constructor gets called prior to += operator
             fsString operator + (const char& other) {           // for adding a charactr to fsString, like: a + 'b';
+                #ifdef __FSSTRING_H_DEBUG__
+                    Serial.printf ("fsString<%i> + const char& operator, other = '%c'\n", N, other);
+                #endif
                 size_t l = strlen (this->__c_str__);
                 if (l < N) { this->__c_str__ [l] = other; this->__c_str__ [l + 1] = 0; } 
-                else __error__ |= OVERFLOW;                             // error? overflow?
+                else __error__ |= OVERFLOW;                                       // error? overflow?
                 return *this;
             } 
-            */
+            //
         
         
             // logical operators: ==, !=, <, <=, >, >=, ignore all possible errors
@@ -183,11 +263,11 @@
             
             fsString<N> substr (size_t pos = 0, size_t len = N + 1) {
                 fsString<N> r;
-                r.__error__ = this->__error__; // inherit all errors from original string
+                r.__error__ = this->__error__;                                    // inherit all errors from original string
                 if (pos >= strlen (this->__c_str__)) {
                     r.__error__ |= OUT_OF_RANGE;
                 } else {
-                    strncpy (r.__c_str__, this->__c_str__ + pos, len); // can't overflow 
+                    strncpy (r.__c_str__, this->__c_str__ + pos, len);            // can't overflow 
                 }
                 return r;
             }
@@ -223,16 +303,20 @@
             }            
 
             size_t max_size () { return N; }
-        
+
+            void erase (size_t pos = 0) {
+                if (pos > N) pos = N;
+                __c_str__ [pos] = 0;
+            }
         
             // some Arduino String-like member functions
             fsString<N> substring (size_t from = 0, size_t to = N - 1) {
                 fsString<N> r;
-                r.__error__ = this->__error__; // inherit all errors from original string
+                r.__error__ = this->__error__;                                    // inherit all errors from original string
                 if (from >= strlen (this->__c_str__) || to < from) {
                     r.__error__ |= OUT_OF_RANGE;
                 } else {
-                    strncpy (r.__c_str__, this->__c_str__ + from, to - from); // can't overflow 
+                    strncpy (r.__c_str__, this->__c_str__ + from, to - from);     // can't overflow 
                 }
                 return r;
             }
@@ -265,6 +349,11 @@
                 return -1;
             }
 
+            void remove (size_t pos = 0) {
+                if (pos > N) pos = N;
+                __c_str__ [pos] = 0;
+            }
+
             void trim () {
                 lTrim ();
                 rTrim ();
@@ -282,7 +371,17 @@
                 size_t i = strlen (__c_str__);
                 while (__c_str__ [-- i] == ' ');
                 __c_str__ [i + 1] = 0;
-            }    
+            }
+
+            void rPad (size_t toLength, char withChar) {
+                if (toLength > N) {
+                  toLength = N;
+                  __error__ |= OVERFLOW;                                          // error? overflow?
+                }
+                size_t l = strlen (__c_str__);
+                while (l < toLength) __c_str__ [l ++] = withChar;
+                __c_str__ [l] = 0;
+            }
 
     };
 
