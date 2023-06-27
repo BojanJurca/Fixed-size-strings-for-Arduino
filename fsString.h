@@ -3,14 +3,23 @@
  * 
  * This file is part of C++ vectors for Arduino: https://github.com/BojanJurca/Cplusplus-fixed-size-strings
  * 
- *  Bojan Jurca, April 1, 2023
+ *  June 25, 2023, Bojan Jurca
  *  
  */
+
+
+#ifndef string
+    #ifdef SHOW_COMPILE_TIME_INFORMATION
+        #pragma message "Default string with default fsString size was not defined previously, #defining the default fsString<300> in fsString.h" 
+    #endif
+    #define string fsString<300>  
+#endif
 
 
 #ifndef __FS_STRING_H__
     #define __FS_STRING_H__
 
+   // #pragma GCC diagnostic ignored "-fpermissive" // suppress warnings like note: candidate 1: 'char& fsString<N>::operator[](size_t) [with unsigned int N = 300; size_t = unsigned int]'
     // #define __FSSTRING_H_DEBUG__       // uncomment this line for debugging puroposes
 
 
@@ -74,7 +83,7 @@
 
             fsString (uint16_t number) {                        // convert unsigned int to fsString
                 #ifdef __FSSTRING_H_DEBUG__
-                    Serial.printf ("fsString<%i> uint16_t constructor, other = %i\n", N, (int) number);
+                    Serial.printf ("fsString<%i> uint16_t constructor, other = %u\n", N, (int) number);
                 #endif
                 char buffer [12];
                 sprintf (buffer, "%u", (unsigned int) number);
@@ -166,7 +175,9 @@
         
         
             // [] operator
-            inline char &operator [] (size_t i) __attribute__((always_inline)) { return __c_str__ [i]; }    
+            inline char &operator [] (size_t i) __attribute__((always_inline)) { return __c_str__ [i]; }
+            inline char &operator [] (int i) __attribute__((always_inline)) { return __c_str__ [i]; }
+            inline char &operator [] (unsigned long i) __attribute__((always_inline)) { return __c_str__ [i]; }
         
         
             // += operator
@@ -203,9 +214,81 @@
                 return *this;
             }   
         
-        
+            fsString operator += (const int16_t& other) {      // for adding a charactr to fsString, like: a += 12;
+                #ifdef __FSSTRING_H_DEBUG__
+                    Serial.printf ("fsString<%i> += const int16_t& operator, other = %i\n", N, other);
+                #endif
+                char buffer [12];
+                sprintf (buffer, "%i", (int) other);
+                strncat (this->__c_str__, buffer, N + 1 - strlen (this->__c_str__));
+                this->__error__ |= this->__c_str__ [N] ? OVERFLOW : 0;        // error? overflow?
+                this->__c_str__ [N] = 0;                                      // mark the end of the string regardles the possible owerflow
+                return *this;
+            }   
+
+            fsString operator += (const uint16_t& other) {     // for adding a charactr to fsString, like: a += 12;
+                #ifdef __FSSTRING_H_DEBUG__
+                    Serial.printf ("fsString<%i> += const uint16_t& operator, other = %u\n", N, other);
+                #endif
+                char buffer [12];
+                sprintf (buffer, "%u", (unsigned int) other);
+                strncat (this->__c_str__, buffer, N + 1 - strlen (this->__c_str__));
+                this->__error__ |= this->__c_str__ [N] ? OVERFLOW : 0;        // error? overflow?
+                this->__c_str__ [N] = 0;                                      // mark the end of the string regardles the possible owerflow
+                return *this;
+            }   
+
+            fsString operator += (const int& other) {          // for adding a charactr to fsString, like: a += 12;
+                #ifdef __FSSTRING_H_DEBUG__
+                    Serial.printf ("fsString<%i> += const int& operator, other = %i\n", N, other);
+                #endif
+                char buffer [12];
+                sprintf (buffer, "%i", other);
+                strncat (this->__c_str__, buffer, N + 1 - strlen (this->__c_str__));
+                this->__error__ |= this->__c_str__ [N] ? OVERFLOW : 0;        // error? overflow?
+                this->__c_str__ [N] = 0;                                      // mark the end of the string regardles the possible owerflow
+                return *this;
+            }   
+
+            fsString operator += (const unsigned int& other) { // for adding a charactr to fsString, like: a += 12;
+                #ifdef __FSSTRING_H_DEBUG__
+                    Serial.printf ("fsString<%i> += const unsigned int& operator, other = %u\n", N, other);
+                #endif
+                char buffer [12];
+                sprintf (buffer, "%u", other);
+                strncat (this->__c_str__, buffer, N + 1 - strlen (this->__c_str__));
+                this->__error__ |= this->__c_str__ [N] ? OVERFLOW : 0;        // error? overflow?
+                this->__c_str__ [N] = 0;                                      // mark the end of the string regardles the possible owerflow
+                return *this;
+            }   
+
+            fsString operator += (const long& other) {         // for adding a charactr to fsString, like: a += 12;
+                #ifdef __FSSTRING_H_DEBUG__
+                    Serial.printf ("fsString<%i> += const long& operator, other = %l\n", N, other);
+                #endif
+                char buffer [12];
+                sprintf (buffer, "%l", other);
+                strncat (this->__c_str__, buffer, N + 1 - strlen (this->__c_str__));
+                this->__error__ |= this->__c_str__ [N] ? OVERFLOW : 0;        // error? overflow?
+                this->__c_str__ [N] = 0;                                      // mark the end of the string regardles the possible owerflow
+                return *this;
+            }   
+
+            fsString operator += (const unsigned long& other) {// for adding a charactr to fsString, like: a += 12;
+                #ifdef __FSSTRING_H_DEBUG__
+                    Serial.printf ("fsString<%i> += const unsigned long& operator, other = %u\n", N, other);
+                #endif
+                char buffer [12];
+                sprintf (buffer, "%lu", other);
+                strncat (this->__c_str__, buffer, N + 1 - strlen (this->__c_str__));
+                this->__error__ |= this->__c_str__ [N] ? OVERFLOW : 0;        // error? overflow?
+                this->__c_str__ [N] = 0;                                      // mark the end of the string regardles the possible owerflow
+                return *this;
+            }   
+
+
             // + operator
-            fsString operator + (char *other) {                 // for adding C string to fsString, like: a + "abc";
+            fsString operator + (const char *other) {           // for adding C string to fsString, like: a + "abc";
                 #ifdef __FSSTRING_H_DEBUG__
                     if (other) Serial.printf ("fsString<%i> + const char * operator, other = ''%s''\n", N, other); else Serial.printf ("fsString<%i> + const char * operator, other = NULL\n", N);
                 #endif
@@ -238,22 +321,27 @@
                 else __error__ |= OVERFLOW;                                       // error? overflow?
                 return *this;
             } 
-            //
         
         
             // logical operators: ==, !=, <, <=, >, >=, ignore all possible errors
             inline bool operator == (const char *other) __attribute__((always_inline))        { return !strcmp (this->__c_str__, other); }              // fsString : C string   
-            inline bool operator == (const fsString& other) __attribute__((always_inline))    { return !strcmp (this->__c_str__, other.__c_str__); }      // fsString : fsString
+            inline bool operator == (char *other) __attribute__((always_inline))              { return !strcmp (this->__c_str__, other); }              // fsString : C string   
+            inline bool operator == (const fsString& other) __attribute__((always_inline))    { return !strcmp (this->__c_str__, other.__c_str__); }    // fsString : fsString
             inline bool operator != (const char *other) __attribute__((always_inline))        { return strcmp (this->__c_str__, other); }               // fsString : C string
-            inline bool operator != (const fsString& other) __attribute__((always_inline))    { return strcmp (this->__c_str__, other.__c_str__); }       // fsString : fsString
+            inline bool operator != (char *other) __attribute__((always_inline))              { return strcmp (this->__c_str__, other); }               // fsString : C string
+            inline bool operator != (const fsString& other) __attribute__((always_inline))    { return strcmp (this->__c_str__, other.__c_str__); }     // fsString : fsString
             inline bool operator <  (const char *other) __attribute__((always_inline))        { return strcmp (this->__c_str__, other) < 0; }           // fsString : C string
-            inline bool operator <  (const fsString& other) __attribute__((always_inline))    { return strcmp (this->__c_str__, other.__c_str__) < 0; }   // fsString : fsString
+            inline bool operator <  (char *other) __attribute__((always_inline))              { return strcmp (this->__c_str__, other) < 0; }           // fsString : C string
+            inline bool operator <  (const fsString& other) __attribute__((always_inline))    { return strcmp (this->__c_str__, other.__c_str__) < 0; } // fsString : fsString
             inline bool operator <= (const char *other) __attribute__((always_inline))        { return strcmp (this->__c_str__, other) <= 0; }          // fsString : C string
-            inline bool operator <= (const fsString& other) __attribute__((always_inline))    { return strcmp (this->__c_str__, other.__c_str__) <= 0; }  // fsString : fsString
+            inline bool operator <= (char *other) __attribute__((always_inline))              { return strcmp (this->__c_str__, other) <= 0; }          // fsString : C string
+            inline bool operator <= (const fsString& other) __attribute__((always_inline))    { return strcmp (this->__c_str__, other.__c_str__) <= 0; }// fsString : fsString
             inline bool operator >  (const char *other) __attribute__((always_inline))        { return strcmp (this->__c_str__, other) > 0; }           // fsString : C string    
-            inline bool operator >  (const fsString& other) __attribute__((always_inline))    { return strcmp (this->__c_str__, other.__c_str__) > 0; }   // fsString : fsString
+            inline bool operator >  (char *other) __attribute__((always_inline))              { return strcmp (this->__c_str__, other) > 0; }           // fsString : C string    
+            inline bool operator >  (const fsString& other) __attribute__((always_inline))    { return strcmp (this->__c_str__, other.__c_str__) > 0; } // fsString : fsString
             inline bool operator >= (const char *other) __attribute__((always_inline))        { return strcmp (this->__c_str__, other) >= 0; }          // fsString : C string    
-            inline bool operator >= (const fsString& other) __attribute__((always_inline))    { return strcmp (this->__c_str__, other.__c_str__) >= 0; }  // fsString : fsString
+            inline bool operator >= (char *other) __attribute__((always_inline))              { return strcmp (this->__c_str__, other) >= 0; }          // fsString : C string    
+            inline bool operator >= (const fsString& other) __attribute__((always_inline))    { return strcmp (this->__c_str__, other.__c_str__) >= 0; }// fsString : fsString
         
           
             // some std::string-like member functions
@@ -274,7 +362,7 @@
 
             static const size_t npos = (size_t) 0xFFFFFFFFFFFFFFFF;
 
-            size_t find (char *str, size_t pos = 0) {
+            size_t find (const char *str, size_t pos = 0) {
                 char *p = strstr (__c_str__ + pos, str);
                 if (p)  return p - __c_str__;
                 return npos;
@@ -321,7 +409,7 @@
                 return r;
             }
 
-            int indexOf (char *str, size_t pos = 0) {
+            int indexOf (const char *str, size_t pos = 0) {
                 char *p = strstr (__c_str__ + pos, str);
                 if (p)  return p - __c_str__;
                 return -1;
@@ -347,6 +435,13 @@
                 while (p) { q = p; p = strstr (p + 1, str); }
                 if (q) return q - __c_str__;
                 return -1;
+            }
+
+            bool endsWith (char *str) { 
+              size_t lStr = strlen (str);
+              size_t lThis = strlen (__c_str__);
+              if (lStr > lThis) return false;
+              return !strcmp (str, __c_str__ + (lThis - lStr));
             }
 
             void remove (size_t pos = 0) {
