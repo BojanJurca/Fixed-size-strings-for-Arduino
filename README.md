@@ -30,6 +30,10 @@ fsString<5> fsi (1234);                // si can hold max 5 characters a
 Serial.println (fs2);
 Serial.printf ("%s\n", fs2);
 Serial.printf ("%s\n", &fs2 [3]);
+char *f = stristr (fs3, "J");
+if (f)
+    Serial.printf ("%s\n", f);
+
 
 // as Arduino String:
 Serial.println (fs2);
