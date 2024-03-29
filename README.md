@@ -1,116 +1,117 @@
-# C++ fixed size strings (for Arduino)
-
-Fixed size strings try to bypass two Arduino String problems:
- - heap memory fragmentation (especially with long-living Strings in a multitasking environment)
- - errors in String operations that go by completely undetected, which really is a serious issue Arduino Strings have (please see: https://github.com/arduino/ArduinoCore-API/issues/186). The reason for this problem lies in missing try-catch functionality that is not supported by Arduino. Hence another mechanism for error handling should be implemented.
-
- 
-Fixed size strings use C-like strings (arrays of chars) that primarily reside on the stack. This solves both of the problems mentioned above but also introduces other kinds of problems, like not optimal use of (stack) memory and having to deal with strings that can not expand above the given number of characters. But within the given limitations the code performs deterministically, which actually is a must.
+# Fixed size strings for Arduino (C char arrays with C++ operators)
 
 
-## fsString functionality
+Fixed size strings for Arduino address the following issues:
 
-Although fsStrings are actually C arrays of chars they also behave similar to C++ std::strings or Arduino Strings.
+- Memory fragmentation of small controllers' (heap) memory when using (C++) Arduino Strings or std::strings.
 
-fsString constructors:
+- inability to detect errors (since Arduino doesn't support try-catch functionality) that occur in string calculations, usually due to the lack of memory.
+
+- lacking the elegance of using C++ string expressions with C char arrays.
+
+Fixed size strings are just C char arrays with C++ operators and an extra flag to keep the information about errors that occured since the string has been constructed. This error information is passed throughout all string operations. A programmer can decide whether or when to use this information or ignore it completely.
+
+Program interface is more or less compatible with the all three types  mentioned above: C char arrays, Arduino Strings or std::strings to make the use as simple as possible.
+
+
+### Examples of fsString constructors
+
 ```C++
-fsString<15> s1;         // s1 can contain max 15 characters
-fsString<15> s2 ("abc"); // s2 can contain max 15 characters
-fsString<15> s3 = "def"; // s3 can contain max 15 characters
+fsString<10> fs1;                      // s1 can hold max 10 characters and is empty when constructed
+fsString<15> fs2 ("abcdef");           // s2 can hold max 15 characters and is initialized with "abc" value
+fsString<15> fs3 = "ghijkl";           // s3 can hold max 15 characters and is assigned "def" value after construction
+fsString<5> fsi (1234);                // si can hold max 5 characters and is assigned "1234" value (converted from int)
+// there are other constructors available as well
 ```
 
-Examples of fsString assignment:
+### Examples of fsString usage
 ```C++
-s1 = "ghi"; // assign C string (array of chars) to fsString
-s2 = s3;    // assign one fsString to another
+// as C char array:
+Serial.println (fs2);
+Serial.printf ("%s\n", fs2);
+Serial.printf ("%s\n", &fs2 [3]);
+
+// as Arduino String:
+Serial.println (fs2);
+Serial.println (fs2.substring (3)); 
+
+// as std::string
+Serial.println (fs2);
+Serial.println (fs2.substr (3)); 
 ```
 
-Examples of fsString comparison:
+### Examples of fsString assignment
 ```C++
-if ( s1 <= s2 )
-    Serial.println ("less or equal");
+fs1 = "ghi";                           // assign char array content  to s1
+fs2 = fs3;                             // assign the value of s3 to s2 (note that they are of the same type: fsString<15>), beside content the error flags are alos copied
+fs3 = fs1;                             // assign the value of s1 to s3 in char array manner, since they are not of the same type (fsString<10> and fsString<15>), so error flags do not get copied!
+fsi = 54321;
+
+// assignment from Arduino String (in char array manner):
+String Ss3 = "ghi";
+fs3 = Ss3.c_str ();                    // assignment is performed through a pointer to char, which Arduino String exposes with c_str () member function
+// assignment from std::string in char array manner:
+std::string ss3 = "ghi";
+fs3 = ss3.c_str ();                    // assignment is performed through a pointer to char, which std::String exposes with c_str () member function
+// fsString also has c_str () member function but since it is exactly the same as (char *) operator it is not really needed, so fs3 is exactly the same as fs3.c_str ()
+```
+
+### Examples of fsString comparison
+```C++
+if (fs2 <= fs3)
+    Serial.println ("fs2 is less or equal to fs3");
 else
-    Serial.println ("greater");
+    Serial.println ("fs2 is greater than fs3");
 
-if ( s2 == s3 )
-    Serial.println ("equal");
+if (fs2 == fs3)
+    Serial.println ("fs2 is equal to fs3");
 else
-    Serial.println ("not equal");
+    Serial.println ("fs2 is different than fs3");
+    // note that comparison can be performed even if both operands are not of the same type (fsString<10> and fsString<15>)
+
+if (fs1 <= fs2)
+    Serial.println ("fs1 is less or equal to fs2");
+else
+    Serial.println ("fs1 is greater than fs2");
 ```
 
-Examples of fsString operators:
+### Examples of using other fsString operators
 ```C++
-s1 += "jkl";
-s1 = s1 + "mno";
+fs1 += "jkl";
+fs1 = fs1 + "mno";
+fs2 = fs1 + 'c'; 
 ```
 
-Example of using std::string like functions:
+### Detecting errors that occured in fsString operations
 ```C++
-size_t i = s1.find ("jkl");
-if ( i != s1.npos )
-    Serial.println ( s1.substr (i, 3) );
-```
+fs2 = "abcdefghij";
+fs3 = fs2 + "123456789"; // please note that fs2 and fs3 are of the same type! (fsString<15>) and the length exceeds 15 characters
+if (fs3.errorFlags ()) {
+    Serial.printf ("fs3 = %s, but there was an error %i while calculating its value\n", fs3, fs3.errorFlags ());  // in spite of the error fsString is still fully initialized up to the maximum number of characters it can contain
+    if (fs3.errorFlags () & OVERFLOW_FLAG) Serial.println ("OVERFLOW");                                           // if the content should actually be longer than it fits into fsString
+    if (fs3.errorFlags () & OUT_OF_RANGE_FLAG) Serial.println ("OUT_OF_RANGE");                                   // if substr or substring addressed non-existing position
+}
 
-Example of using Arduino String like functions:
-```C++
-int j = s1.indexOf ("jkl");
-if ( j >= 0 )
-    Serial.println ( s1.substring (j, j + 3) );
-```
-
-Example of using fsString as C string (array of chars):
-```C++
-Serial.printf ("s1 = %s\n", s1 );
-int k = 0;
-while ( s1 [k] ) {
-    Serial.println ( s1 [k] );
-    k ++;
+fs3 = fs2.substr (9, 3); // please note that error information from operands is passed to the result
+Serial.printf ("   fs3 = %s, fs3.errorFlags () = %i\n", fs3, fs3.errorFlags ());
+if (fs3.errorFlags ()) {
+    Serial.printf ("fs3 = %s, but there was an error %i while calculating its value\n", fs3, fs3.errorFlags ());  // in spite of the error fsString is still calculated from the data that is available
+    if (fs3.errorFlags () & OVERFLOW_FLAG) Serial.println ("OVERFLOW");                                           // if the content should actually be longer than it fits into fsString
+    if (fs3.errorFlags () & OUT_OF_RANGE_FLAG) Serial.println ("OUT_OF_RANGE");                                   // if substr or substring addressed non-existing position
 }
 ```
 
-### Handling errors in fsString operations
-
-Opposite to Arduino Strings, fsString constructors can not fail as long as there is enough stack memory where they reside (with an exception when the initialization string is longer than fits into fsString).
-
-If due to string assignment or concatenation the result should be longer than fits into fsString, fsString will get filled to the maximum number of characters it can contain and the OVERFLOW error flag will be set. This flag can be checked so the code can react to it if needed.
-
-If due to string assignment or concatenation the result should be longer than fits into fsString, fsString will get filled to the maximum number of characters it can contain and the OVERFLOW error flag will be set. This flag can be checked so the code can react to it if needed.
-
-if substr or substring member functions are called with a position parameter outside of string range OUT_OF_RANGE error flag will be set. This flag can be checked so the code can react to it if needed.
-
-Whenever a fsString with errors flags set is involved in fsString operations, the resulting fsString will inherit all the error flags. Thus it is not necessary to check errors after each string operation for errors will be preserved until fsString gets assigned with errorless fsString.
-
+### Checking if an error has occurred only once after after many fsString operations
 ```C++
-s2 = s1 + "123456789"; // please note that total length exceeds 15 characters
-if ( s2.error () /* != 0 */ ) {
-    Serial.printf ("s2 = %s, but there was an error %i while calculating its value\n", s2, s2.error () ); // in spite of the error fsString is still fully initialized up to the maximum number of characters it can contain
-    if ( s2.error () & s2.OVERFLOW ) Serial.println ("OVERFLOW");         // if the content should actually be longer than it fits into fsString
-    if ( s2.error () & s2.OUT_OF_RANGE ) Serial.println ("OUT_OF_RANGE"); // if substr or substring addressed non-existing position
+// construct JSON array of numbers 1 .. 100 in fsString with error checking
+fsString<500> fjson;
+
+fjson = "'[\"";
+for (int i = 1; i <= 99; i++) {
+    fjson += i;
+    fjson += "\",\"";
 }
+fjson += "100\"]'";
 
-s3 = s2.substr (9, 3); // please note that error information from operands is passed to the result
-if ( s3.error () /* != 0 */ ) {
-    Serial.printf ("s3 = %s, but there was an error %i while calculating its value\n", s3, s3.error () ); // in spite of the error fsString is still calculated from the data that is available
-    if ( s3.error () & s3.OVERFLOW ) Serial.println ("OVERFLOW");         // if the content should actually be longer than it fits into fsString
-    if ( s3.error () & s3.OUT_OF_RANGE ) Serial.println ("OUT_OF_RANGE"); // if substr or substring addressed non-existing position
-}
-```
-
-Combining fsString with C string (array of chars):
-```C++
-char cstr [] = "456";
-s3 += cstr;
-Serial.println (s3);
-```
-
-Combining fsStrings of different sizes is only possible through the char * operator since fsStrings are, from C++ point of view, of different types. This means that such operations are actually the same as operations among fsStrings and C strings (arrays of chars).
-
-Basically all the operations should work normally. The only difference is that error information will not get passed to the resulting fsString.
-```C++
-fsString<100> bigS;
-bigS = s3;
-if ( bigS.error () /* != 0 */ )
-    Serial.printf ("bigS = %s, but there was an error %i while calculating its value\n", bigS, bigS.error () );
-else
-    Serial.printf ("bigS = %s, with no error\n", bigS); // please note that error information is not passed from s3 to bigS, since both fsStrings are actually of different types
+Serial.printf ("fjson construction error? %i\n", fjson.errorFlags ()); // check success
 ```
