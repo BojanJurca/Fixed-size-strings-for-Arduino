@@ -12,6 +12,28 @@
     #define __FS_STRING_H__
 
 
+        // missing C function in Arduino
+        char *stristr (const char *haystack, const char *needle) { 
+            if (!haystack || !needle) return NULL; // nonsense
+            int nCheckLimit = strlen (needle);                     
+            int hCheckLimit = strlen (haystack) - nCheckLimit + 1;
+            for (int i = 0; i < hCheckLimit; i++) {
+                int j = i;
+                int k = 0;
+                char hChar, nChar;
+                while (*(needle + k)) {
+                    hChar = *(haystack + j); if (hChar >= 'a' && hChar <= 'z') hChar -= 32; // convert to upper case
+                    nChar = *(needle + k); if (nChar >= 'a' && nChar <= 'z') nChar -= 32; // convert to upper case
+                    if (nChar != hChar || hChar) break;
+                    j ++;
+                    k ++;
+                }
+                if (nChar == hChar) return (char *) haystack + i; // match!
+            }
+            return NULL; // no match
+        }
+
+
     // ----- TUNNING PARAMETERS -----
 
     #ifndef fsstring
