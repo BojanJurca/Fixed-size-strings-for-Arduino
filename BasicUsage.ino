@@ -2,9 +2,9 @@
 
 void setup () {
     Serial.begin (115200);
+    delay (3000);
 
-    // examples of fsString constructors:
-
+    // Examples of fsString constructors
     fsString<10> fs1;                      // s1 can hold max 10 characters and is empty when constructed
     fsString<15> fs2 ("abcdef");           // s2 can hold max 15 characters and is initialized with "abc" value
     fsString<15> fs3 = "ghijkl";           // s3 can hold max 15 characters and is assigned "def" value after construction
@@ -12,12 +12,14 @@ void setup () {
     // there are other constructors available as well
 
 
-    // examples of fsString usage:
-
+    // Examples of fsString usage
         // as C char array:
         Serial.println (fs2);
         Serial.printf ("%s\n", fs2);
         Serial.printf ("%s\n", &fs2 [3]);
+        char *f = stristr (fs3, "J");
+        if (f)
+            Serial.printf ("%s\n", f);
 
         // as Arduino String:
         Serial.println (fs2);
@@ -28,23 +30,22 @@ void setup () {
         Serial.println (fs2.substr (3)); 
 
 
-    // examples of fsString assignment:
-
+    // Examples of fsString assignment
     fs1 = "ghi";                           // assign char array content  to s1
     fs2 = fs3;                             // assign the value of s3 to s2 (note that they are of the same type: fsString<15>), beside content the error flags are alos copied
     fs3 = fs1;                             // assign the value of s1 to s3 in char array manner, since they are not of the same type (fsString<10> and fsString<15>), so error flags do not get copied!
     fsi = 54321;
 
-    // assignment from Arduino String (in char array manner):
+    // Assignment from Arduino String (in char array manner)
     String Ss3 = "ghi";
     fs3 = Ss3.c_str ();                    // assignment is performed through a pointer to char, which Arduino String exposes with c_str () member function
     // assignment from std::string in char array manner:
     std::string ss3 = "ghi";
     fs3 = ss3.c_str ();                    // assignment is performed through a pointer to char, which std::String exposes with c_str () member function
-    // fsString also has c_str () member function but since it is exactly the same as (char *) operator it is not really neede, so fs3 is exaclty the same as fs3.c_str ()
+    // fsString also has c_str () member function but since it is exactly the same as (char *) operator it is not really needed, so fs3 is exactly the same as fs3.c_str ()
 
 
-    // examples of using fsString comparison operators:
+    // Examples of using fsString comparison operators
     if ( fs2 <= fs3 )
         Serial.println ("fs2 is less or equal to fs3");
     else
@@ -61,27 +62,30 @@ void setup () {
         Serial.println ("fs1 is greater than fs2");
 
 
-    // examples of using other fsString operators:
+    // Examples of using other fsString operators
     fs1 += "jkl";
     fs1 = fs1 + "mno";
     fs2 = fs1 + 'c'; 
 
 
-    // detecting errors that occured in fsString operations:
+    // Detecting errors that occured in fsString operations
     fs2 = "abcdefghij";
+
+    fs3.clearErrorFlags (); // clear possible error flags from previous operations
     fs3 = fs2 + "123456789"; // please note that fs2 and fs3 are of the same type! (fsString<15>) and the length exceeds 15 characters
     if (fs3.errorFlags ()) {
         Serial.printf ("fs3 = %s, but there was an error %i while calculating its value\n", fs3, fs3.errorFlags ());  // in spite of the error fsString is still fully initialized up to the maximum number of characters it can contain
-        if (fs3.errorFlags () & OVERFLOW_FLAG) Serial.println ("OVERFLOW");                                           // if the content should actually be longer than it fits into fsString
-        if (fs3.errorFlags () & OUT_OF_RANGE_FLAG) Serial.println ("OUT_OF_RANGE");                                   // if substr or substring addressed non-existing position
+        if (fs3.errorFlags () & OVERFLOW) Serial.println ("OVERFLOW");                                                // if the content should actually be longer than it fits into fsString
+        if (fs3.errorFlags () & OUT_OF_RANGE) Serial.println ("OUT_OF_RANGE");                                        // if substr or substring addressed non-existing position
     }
 
-    fs3 = fs2.substr (9, 3); // please note that error information from operands is passed to the result
+
+    fs3 = fs2.substr (11, 3); // please note that error information from operands is passed to the result
     Serial.printf ("   fs3 = %s, fs3.errorFlags () = %i\n", fs3, fs3.errorFlags ());
     if (fs3.errorFlags ()) {
         Serial.printf ("fs3 = %s, but there was an error %i while calculating its value\n", fs3, fs3.errorFlags ());  // in spite of the error fsString is still calculated from the data that is available
-        if (fs3.errorFlags () & OVERFLOW_FLAG) Serial.println ("OVERFLOW");                                           // if the content should actually be longer than it fits into fsString
-        if (fs3.errorFlags () & OUT_OF_RANGE_FLAG) Serial.println ("OUT_OF_RANGE");                                   // if substr or substring addressed non-existing position
+        if (fs3.errorFlags () & OVERFLOW) Serial.println ("OVERFLOW");                                                // if the content should actually be longer than it fits into fsString
+        if (fs3.errorFlags () & OUT_OF_RANGE) Serial.println ("OUT_OF_RANGE");                                        // if substr or substring addressed non-existing position
     }
 
 

@@ -45,9 +45,9 @@
 
 
     // error flags: there are only two types of error flags that can be set: OVERFLOW and OUT_OF_RANGE - please note that all errors are negative (char) numbers
-    #define OK                ((signed char) 0b00000000) //    0 - no error    
-    #define OVERFLOW_FLAG     ((signed char) 0b10000001) // -127 - buffer overflow
-    #define OUT_OF_RANGE_FLAG ((signed char) 0b10000010) // -126 - invalid index
+    #define OK           ((signed char) 0b00000000) //    0 - no error    
+    #define OVERFLOW     ((signed char) 0b10000001) // -127 - buffer overflow
+    #define OUT_OF_RANGE ((signed char) 0b10000010) // -126 - invalid index
 
 
     // fixed size string, actually C char arrays with additional functions and operators
@@ -61,7 +61,7 @@
         
         public:
         
-            signed char errorFlags () { return __errorFlags__; }
+            signed char errorFlags () { return __errorFlags__ & 0b01111111; }
             void clearErrorFlags () { __errorFlags__ = 0; }
         
         
@@ -72,7 +72,7 @@
                 if (other) {                                                  // check if NULL char * pointer to overcome from possible programmer's errors
                     strncpy (this->__c_str__, other, N + 1);
                     if (this->__c_str__ [N]) {
-                         __errorFlags__ = OVERFLOW_FLAG;                      // OVEVRFLOW
+                         __errorFlags__ = OVERFLOW;                           // OVEVRFLOW
                         this->__c_str__ [N] = 0;                              // mark the end of the string regardles OVERFLOW
                     }
                 } 
@@ -86,7 +86,7 @@
             fsString (const char& other) {                      // for declarations with initialization, like fsString<15> d ('c'); (convert char to fsString)
                 this->__c_str__ [0] = other;
                 if (this->__c_str__ [N]) {
-                    __errorFlags__ = OVERFLOW_FLAG;                           // OVEVRFLOW
+                    __errorFlags__ = OVERFLOW;                                // OVEVRFLOW
                     this->__c_str__ [N] = 0;                                  // mark the end of the string regardles OVERFLOW
                 }
             }
@@ -94,7 +94,7 @@
             fsString (int number) {                             // for declarations with initialization, like fsString<15> e (3); (convert int to fsString)
                 snprintf (this->__c_str__, N + 2, "%i", number);
                 if (this->__c_str__ [N]) {
-                    __errorFlags__ = OVERFLOW_FLAG;                           // OVEVRFLOW
+                    __errorFlags__ = OVERFLOW;                                // OVEVRFLOW
                     this->__c_str__ [N] = 0;                                  // mark the end of the string regardles OVERFLOW
                 }
             }
@@ -102,7 +102,7 @@
             fsString (unsigned int number) {                    // for declarations with initialization, like fsString<15> e (3); (convert unsigned int to fsString)
                 snprintf (this->__c_str__, N + 2, "%u", number);
                 if (this->__c_str__ [N]) {
-                    __errorFlags__ = OVERFLOW_FLAG;                           // OVEVRFLOW
+                    __errorFlags__ = OVERFLOW;                                // OVEVRFLOW
                     this->__c_str__ [N] = 0;                                  // mark the end of the string regardles OVERFLOW
                 }
             }
@@ -110,7 +110,7 @@
             fsString (long number) {                            // for declarations with initialization, like fsString<15> e (3); (convert long to fsString)
                 snprintf (this->__c_str__, N + 2, "%l", number);
                 if (this->__c_str__ [N]) {
-                    __errorFlags__ = OVERFLOW_FLAG;                           // OVEVRFLOW
+                    __errorFlags__ = OVERFLOW;                                // OVEVRFLOW
                     this->__c_str__ [N] = 0;                                  // mark the end of the string regardles OVERFLOW
                 }
             }
@@ -118,7 +118,7 @@
             fsString (unsigned long number) {                   // for declarations with initialization, like fsString<15> e (3); (convert unsigned long to fsString)
                 snprintf (this->__c_str__, N + 2, "%lu", number);
                 if (this->__c_str__ [N]) {
-                    __errorFlags__ = OVERFLOW_FLAG;                           // OVEVRFLOW
+                    __errorFlags__ = OVERFLOW;                                // OVEVRFLOW
                     this->__c_str__ [N] = 0;                                  // mark the end of the string regardles OVERFLOW
                 }
             }
@@ -126,7 +126,7 @@
             fsString (float number) {                           // for declarations with initialization, like fsString<15> e (3.1); (convert float to fsString)
                 snprintf (this->__c_str__, N + 2, "%f", number);
                 if (this->__c_str__ [N]) {
-                    __errorFlags__ = OVERFLOW_FLAG;                           // OVEVRFLOW
+                    __errorFlags__ = OVERFLOW;                                // OVEVRFLOW
                     this->__c_str__ [N] = 0;                                  // mark the end of the string regardles OVERFLOW
                 }
             }
@@ -134,7 +134,7 @@
             fsString (double number) {                          // for declarations with initialization, like fsString<15> e (3.1); (convert float to fsString)
                 snprintf (this->__c_str__, N + 2, "%lf", number);
                 if (this->__c_str__ [N]) {
-                    __errorFlags__ = OVERFLOW_FLAG;                           // OVEVRFLOW
+                    __errorFlags__ = OVERFLOW;                                // OVEVRFLOW
                     this->__c_str__ [N] = 0;                                  // mark the end of the string regardles OVERFLOW
                 }
             }
@@ -149,7 +149,7 @@
                 if (other) {                                                  // check if NULL char * pointer to overcome from possible programmers' errors
                     strncpy (this->__c_str__, other, N + 1);
                     if (this->__c_str__ [N]) {
-                        this->__errorFlags__ = OVERFLOW_FLAG;                 // OVEVRFLOW
+                        this->__errorFlags__ = OVERFLOW;                      // OVEVRFLOW
                         this->__c_str__ [N] = 0;                              // mark the end of the string regardles OVERFLOW
                     } else {
                         this->__errorFlags__ = 0;                             // clear error after new assignment
@@ -167,7 +167,7 @@
             fsString operator = (const char& other) {           // for assigning character to fsString, like: a = 'b';
                 this->__c_str__ [0] = other; 
                 if (this->__c_str__ [N]) {
-                    this->__errorFlags__ = OVERFLOW_FLAG;                     // OVEVRFLOW
+                    this->__errorFlags__ = OVERFLOW;                          // OVEVRFLOW
                 } else {
                     this->__errorFlags__ = 0;                                 // clear error after new assignment
                 }
@@ -182,7 +182,7 @@
             fsString operator = (int number) {                   // for assigning int to fsString, like: a = 1234;
                 snprintf (this->__c_str__, N + 2, "%i", number);
                 if (this->__c_str__ [N]) {
-                    this->__errorFlags__ = OVERFLOW_FLAG;                     // OVEVRFLOW
+                    this->__errorFlags__ = OVERFLOW;                          // OVEVRFLOW
                     this->__c_str__ [N] = 0;                                  // mark the end of the string regardles OVERFLOW
                 } else {
                     this->__errorFlags__ = 0;                                 // clear error after new assignment
@@ -193,7 +193,7 @@
             fsString operator = (unsigned int number) {           // for assigning unsigned int to fsString, like: a = 1234;
                 snprintf (this->__c_str__, N + 2, "%u", number);
                 if (this->__c_str__ [N]) {
-                    this->__errorFlags__ = OVERFLOW_FLAG;                     // OVEVRFLOW
+                    this->__errorFlags__ = OVERFLOW;                          // OVEVRFLOW
                     this->__c_str__ [N] = 0;                                  // mark the end of the string regardles the OVERFLOW
                 } else {
                     this->__errorFlags__ = 0;                                 // clear error after new assignment
@@ -204,7 +204,7 @@
             fsString operator = (long number) {                   // for assigning long to fsString, like: a = 1234;
                 snprintf (this->__c_str__, N + 2, "%l", number);
                 if (this->__c_str__ [N]) {
-                    this->__errorFlags__ = OVERFLOW_FLAG;                     // OVEVRFLOW
+                    this->__errorFlags__ = OVERFLOW;                          // OVEVRFLOW
                     this->__c_str__ [N] = 0;                                  // mark the end of the string regardles OVERFLOW
                 } else {
                     this->__errorFlags__ = 0;                                 // clear error after new assignment
@@ -215,7 +215,7 @@
             fsString operator = (unsigned long number) {          // for assigning unsigned long to fsString, like: a = 1234;
                 snprintf (this->__c_str__, N + 2, "%lu", number);
                 if (this->__c_str__ [N]) {
-                    this->__errorFlags__ = OVERFLOW_FLAG;                     // OVEVRFLOW
+                    this->__errorFlags__ = OVERFLOW;                          // OVEVRFLOW
                     this->__c_str__ [N] = 0;                                  // mark the end of the string regardles OVERFLOW
                 } else {
                     this->__errorFlags__ = 0;                                 // clear error after new assignment
@@ -226,7 +226,7 @@
             fsString operator = (float number) {                  // for assigning float to fsString, like: a = 1234.5;
                 snprintf (this->__c_str__, N + 2, "%f", number);
                 if (this->__c_str__ [N]) {
-                    this->__errorFlags__ = OVERFLOW_FLAG;                     // OVEVRFLOW
+                    this->__errorFlags__ = OVERFLOW;                          // OVEVRFLOW
                     this->__c_str__ [N] = 0;                                  // mark the end of the string regardles OVEFLOW
                 } else {
                     this->__errorFlags__ = 0;                                 // clear error after new assignment
@@ -237,7 +237,7 @@
             fsString operator = (double number) {                 // for assigning double to fsString, like: a = 1234.5;
                 snprintf (this->__c_str__, N + 2, "%lf", number);
                 if (this->__c_str__ [N]) {
-                    this->__errorFlags__ = OVERFLOW_FLAG;                     // OVEVRFLOW
+                    this->__errorFlags__ = OVERFLOW;                          // OVEVRFLOW
                     this->__c_str__ [N] = 0;                                  // mark the end of the string regardles OVERFLOW
                 } else {
                     this->__errorFlags__ = 0;                                 // clear error after new assignment
@@ -251,7 +251,7 @@
                 if (other) {                                                  // check if NULL char * pointer to overcome from possible programmer's errors
                     strncat (this->__c_str__, other, N + 1 - strlen (this->__c_str__));
                     if (this->__c_str__ [N]) {
-                        this->__errorFlags__ |= OVERFLOW_FLAG;                // add OVERFLOW flag to possibe already existing error flags
+                        this->__errorFlags__ |= OVERFLOW;                     // add OVERFLOW flag to possibe already existing error flags
                         this->__c_str__ [N] = 0;                              // mark the end of the string regardles OVERFLOW
                     } 
                 }
@@ -262,7 +262,7 @@
                 strncat (this->__c_str__, other.__c_str__, N + 1 - strlen (this->__c_str__));
                 this->__errorFlags__ |= other.__errorFlags__;                 // add all errors from other string
                 if (this->__c_str__ [N]) {
-                    this->__errorFlags__ |= OVERFLOW_FLAG;                    // add OVERFLOW flag to possibe already existing error flags
+                    this->__errorFlags__ |= OVERFLOW;                         // add OVERFLOW flag to possibe already existing error flags
                     this->__c_str__ [N] = 0;                                  // mark the end of the string regardles OVERFLOW
                 } 
                 return *this;
@@ -274,7 +274,7 @@
                     this->__c_str__ [l] = other; 
                     this->__c_str__ [l + 1] = 0; 
                 } else {
-                    __errorFlags__ |= OVERFLOW_FLAG;                          // add OVERFLOW flag to possibe already existing error flags
+                    __errorFlags__ |= OVERFLOW;                               // add OVERFLOW flag to possibe already existing error flags
                 }
                 return *this;
             }   
@@ -283,7 +283,7 @@
                 size_t l = strlen (this->__c_str__);
                 snprintf (this->__c_str__ + l, N + 2 - l, "%i", number);
                 if (this->__c_str__ [N]) {
-                    this->__errorFlags__ |= OVERFLOW_FLAG;                    // add OVERFLOW flag to possibe already existing error flags
+                    this->__errorFlags__ |= OVERFLOW;                         // add OVERFLOW flag to possibe already existing error flags
                     this->__c_str__ [N] = 0;                                  // mark the end of the string regardles OVERFLOW
                 } 
                 return *this;
@@ -293,7 +293,7 @@
                 size_t l = strlen (this->__c_str__);
                 snprintf (this->__c_str__ + l, N + 2 - l, "%u", number);
                 if (this->__c_str__ [N]) {
-                    this->__errorFlags__ |= OVERFLOW_FLAG;                    // add OVERFLOW flag to possibe already existing error flags
+                    this->__errorFlags__ |= OVERFLOW;                         // add OVERFLOW flag to possibe already existing error flags
                     this->__c_str__ [N] = 0;                                  // mark the end of the string regardles OVERFLOW
                 } 
                 return *this;
@@ -303,7 +303,7 @@
                 size_t l = strlen (this->__c_str__);
                 snprintf (this->__c_str__ + l, N + 2 - l, "%l", number);
                 if (this->__c_str__ [N]) {
-                    this->__errorFlags__ |= OVERFLOW_FLAG;                    // add OVERFLOW flag to possibe already existing error flags
+                    this->__errorFlags__ |= OVERFLOW;                         // add OVERFLOW flag to possibe already existing error flags
                     this->__c_str__ [N] = 0;                                  // mark the end of the string regardles OVERFLOW
                 } 
                 return *this;
@@ -313,7 +313,7 @@
                 size_t l = strlen (this->__c_str__);
                 snprintf (this->__c_str__ + l, N + 2 - l, "%lu", number);
                 if (this->__c_str__ [N]) {
-                    this->__errorFlags__ |= OVERFLOW_FLAG;                    // add OVERFLOW flag to possibe already existing error flags
+                    this->__errorFlags__ |= OVERFLOW;                         // add OVERFLOW flag to possibe already existing error flags
                     this->__c_str__ [N] = 0;                                  // mark the end of the string regardles OVERFLOW
                 } 
                 return *this;
@@ -323,7 +323,7 @@
                 size_t l = strlen (this->__c_str__);
                 snprintf (this->__c_str__ + l, N + 2 - l, "%f", number);
                 if (this->__c_str__ [N]) {
-                    this->__errorFlags__ |= OVERFLOW_FLAG;                    // add OVERFLOW flag to possibe already existing error flags
+                    this->__errorFlags__ |= OVERFLOW;                         // add OVERFLOW flag to possibe already existing error flags
                     this->__c_str__ [N] = 0;                                  // mark the end of the string regardles OVERFLOW
                 } 
                 return *this;
@@ -333,7 +333,7 @@
                 size_t l = strlen (this->__c_str__);
                 snprintf (this->__c_str__ + l, N + 2 - l, "%lf", number);
                 if (this->__c_str__ [N]) {
-                    this->__errorFlags__ |= OVERFLOW_FLAG;                    // add OVERFLOW flag to possibe already existing error flags
+                    this->__errorFlags__ |= OVERFLOW;                         // add OVERFLOW flag to possibe already existing error flags
                     this->__c_str__ [N] = 0;                                  // mark the end of the string regardles OVERFLOW
                 } 
                 return *this;
@@ -342,35 +342,21 @@
 
             // + operator
             fsString operator + (const char *other) {             // for adding C string to fsString, like: a + "abc";
-                if (other) {                                                  // check if NULL char * pointer to overcome from possible programmer's errors
-                    strncat (this->__c_str__, other, N + 1 - strlen (this->__c_str__));
-                    if (this->__c_str__ [N]) {
-                        this->__errorFlags__ |= OVERFLOW_FLAG;                // add OVERFLOW flag to possibe already existing error flags
-                        this->__c_str__ [N] = 0;                              // mark the end of the string regardles OVERFLOW
-                    } 
-                }
-                return *this;
+                fsString<N> tmp = *this; // copy of this, including error information
+                tmp += other;
+                return tmp;
             }
         
             fsString operator + (const fsString& other) {       // for concatenating one fsString with anoterh, like: a + b;
-                strncat (this->__c_str__, other.__c_str__, N + 1 - strlen (this->__c_str__));
-                this->__errorFlags__ |= other.__errorFlags__;                 // add all errors from other string
-                if (this->__c_str__ [N]) {
-                    this->__errorFlags__ |= OVERFLOW_FLAG;                    // add OVERFLOW flag to possibe already existing error flags
-                    this->__c_str__ [N] = 0;                                  // mark the end of the string regardles OVERFLOW
-                } 
-                return *this;
+                fsString<N> tmp = *this; // copy of this, including error information
+                tmp += other;
+                return tmp;
             }
 
             fsString operator + (const char& other) {           // for adding a character to fsString, like: a + 'b';
-                size_t l = strlen (this->__c_str__);
-                if (l < N) { 
-                    this->__c_str__ [l] = other; 
-                    this->__c_str__ [l + 1] = 0; 
-                } else {
-                    __errorFlags__ |= OVERFLOW_FLAG;                          // add OVERFLOW flag to possibe already existing error flags
-                }
-                return *this;
+                fsString<N> tmp = *this; // copy of this, including error information
+                tmp += other;
+                return tmp;
             } 
 
             // can't use + operator for integers, this would make impossible to use for example fsstring + int to calculate the pointer to the location 
@@ -416,7 +402,7 @@
                 fsString<N> r;
                 r.__errorFlags__ = this->__errorFlags__;                      // inherit all errors from original string
                 if (pos >= strlen (this->__c_str__)) {
-                    r.__errorFlags__ |= OUT_OF_RANGE_FLAG;
+                    r.__errorFlags__ |= OUT_OF_RANGE;
                 } else {
                     strncpy (r.__c_str__, this->__c_str__ + pos, len);        // can't overflow 
                 }
@@ -463,7 +449,7 @@
                 fsString<N> r;
                 r.__errorFlags__ = this->__errorFlags__;                      // inherit all errors from original string
                 if (from >= strlen (this->__c_str__) || to < from) {
-                    r.__errorFlags__ |= OUT_OF_RANGE_FLAG;
+                    r.__errorFlags__ |= OUT_OF_RANGE;
                 } else {
                     strncpy (r.__c_str__, this->__c_str__ + from, to - from); // can't overflow 
                 }
@@ -532,7 +518,7 @@
             void rPad (size_t toLength, char withChar) {
                 if (toLength > N) {
                   toLength = N;
-                  __errorFlags__ |= OVERFLOW_FLAG;                            // error? overflow?
+                  __errorFlags__ |= OVERFLOW;                                 // error? overflow?
                 }
                 size_t l = strlen (__c_str__);
                 while (l < toLength) __c_str__ [l ++] = withChar;
